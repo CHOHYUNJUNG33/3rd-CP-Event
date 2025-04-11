@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!DOCTYPE html><html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <title>3차 컴플라이언스 이벤트!</title>
@@ -61,6 +60,18 @@
       font-weight: bold;
       color: #5a3e36;
     }
+    #top-left-text {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 1.4vw;
+      font-weight: bold;
+      background: rgba(255,255,255,0.8);
+      padding: 8px 14px;
+      border-radius: 10px;
+      color: #333;
+      z-index: 10;
+    }
     #start-screen {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -118,8 +129,8 @@
   </style>
 </head>
 <body>
-
   <div id="game-container">
+    <div id="top-left-text">3차 컴플라이언스 이벤트_벚꽃타자게임!25개 단어를 입력하면 게임끝!</div>
     <div id="word-counter">0 / 25개</div>
     <div id="start-screen"><button id="start-button">Game Start!</button></div>
     <button id="restart-btn">Restart!</button>
@@ -128,9 +139,7 @@
       <input type="text" id="word-input" placeholder="단어를 입력하세요" autofocus />
     </div>
     <div id="complete"></div>
-  </div>
-
-  <script>
+  </div>  <script>
     const baseWords = ["하도급", "원사업자", "수급사업자", "하도급대금 연동제", "하도급 계약서", "하도급대금", "주요 원재료", "쪼개기 계약 금지", "입찰참가자격 제한", "법정 지급기일 준수", "하도급대금 지급보증", "기술자료요구서 제공", "비밀유지계약 체결", "원가", "징벌적 손해배상책임", "하도급법 준수", "작업지시서 발급", "부당특약 설정 금지", "인테그리티", "Integrity", "벚꽃놀이", "자율활동", "협력사", "하도급법", "공정위 제재"];
     const shuffledWords = baseWords.sort(() => 0.5 - Math.random()).slice(0, 25);
 
@@ -228,6 +237,5 @@
         inputBox.value = "";
       }
     });
-  </script>
-</body>
+  </script></body>
 </html>
