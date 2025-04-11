@@ -1,54 +1,134 @@
 <!DOCTYPE html><html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>3차 컴플라이언스 이벤트 - 점수판 연동</title>
+  <title>3차 컴플라이언스 이벤트!</title>
   <link href="https://cdn.jsdelivr.net/gh/webfontworld/gmarket/GmarketSans.css" rel="stylesheet" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'GmarketSans', sans-serif;
-      background: #fff;
+      background-color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
     }
     #game-container {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 70vw;
+      height: 70vh;
       background: url("abcd.PNG") center/cover no-repeat;
+      background-color: #fff;
       overflow: hidden;
     }
     .word {
       position: absolute;
       font-size: 1.5vw;
-      font-weight: bold;
+      font-weight: 900;
       color: #5a3e36;
       z-index: 2;
     }
-    #input-area, #start-screen, #restart-btn, #complete, #leaderboard {
-      z-index: 10;
-      position: absolute;
-    }
     #input-area {
-      bottom: 0; width: 100%; background: rgba(255,255,255,0.9); text-align: center; padding: 10px;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 10px;
+      text-align: center;
+      display: none;
+      z-index: 3;
     }
     #word-input {
-      width: 60%; height: 40px; font-size: 1.2vw; border-radius: 8px; border: 2px solid #ccc;
+      font-size: 1.2vw;
+      width: 60%;
+      height: 40px;
+      border: 2px solid #e0c3cc;
+      border-radius: 8px;
+      padding: 5px;
+    }
+    #leaderboard {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.8);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.9vw;
+      z-index: 4;
     }
     #start-screen {
-      top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
     }
     #start-button, #restart-btn {
-      padding: 12px 24px; font-size: 1.2vw; font-weight: bold; border-radius: 12px; border: 2px solid #d36c8d;
-      background: linear-gradient(to bottom, #ffd6e1, #fbb0c7); box-shadow: 0 4px #b85274; cursor: pointer;
+      padding: 14px 30px;
+      font-size: 1.3vw;
+      font-weight: bold;
+      background: linear-gradient(to bottom, #ffd6e1, #fbb0c7);
+      border: 2px solid #d36c8d;
+      border-radius: 12px;
+      box-shadow: 0 4px #b85274;
+      color: #5a3e36;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
     }
-    #restart-btn { top: 20px; right: 20px; display: none; }
+    #restart-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: none;
+      z-index: 4;
+    }
     #complete {
-      top: 30%; left: 50%; transform: translateX(-50%); padding: 20px; background: #fff0f5;
-      border-radius: 12px; display: none; text-align: center;
+      position: absolute;
+      top: 35%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.5);
+      background: #ffe0ec;
+      border: 2px solid #ffb6c1;
+      padding: 30px;
+      border-radius: 16px;
+      font-size: 1.6vw;
+      display: none;
+      z-index: 4;
+      color: #5a3e36;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      max-width: 60%;
+      text-align: center;
+      animation: popupBubble 0.5s ease-out forwards;
+    }
+    #complete::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 20px solid #ffe0ec;
+    }
+    @keyframes popupBubble {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.3);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
     }
     #timer {
       position: fixed;
-      bottom: 20px;
-      left: 20px;
+      bottom: 160px;
+      left: 290px;
       font-size: 1.2vw;
       font-weight: bold;
       background: rgba(255,255,255,0.8);
@@ -56,32 +136,18 @@
       border-radius: 10px;
       z-index: 10;
     }
-    #leaderboard {
-      top: 20px;
-      left: 20px;
-      background: rgba(255,255,255,0.9);
-      padding: 10px 20px;
-      border-radius: 10px;
-      max-width: 300px;
-    }
-    #leaderboard h3 { margin-top: 0; }
   </style>
 </head>
 <body>
   <div id="game-container">
-    <div id="start-screen">
-      <button id="start-button">게임 시작</button>
-    </div>
-    <button id="restart-btn">다시 시작</button>
-    <div id="input-area" style="display: none;">
-      <input type="text" id="word-input" placeholder="단어를 입력하세요" />
+    <div id="leaderboard"><h4>실시간 순위</h4><ol id="ranking-list"></ol></div>
+    <div id="start-screen"><button id="start-button">Game Start!</button></div>
+    <button id="restart-btn">Restart!</button>
+    <div id="timer">00.00초</div>
+    <div id="input-area">
+      <input type="text" id="word-input" placeholder="단어를 입력하세요" autofocus />
     </div>
     <div id="complete"></div>
-    <div id="timer">00.00초</div>
-    <div id="leaderboard">
-      <h3>실시간 순위</h3>
-      <ol id="ranking-list"></ol>
-    </div>
   </div>  <!-- Firebase SDK -->  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDmAU5DzdxpIotxcH0b4HQFzGbp1Wat7dA",
@@ -94,7 +160,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const baseWords = ["하도급", "계약서", "지급기한", "공정위", "공정거래", "단가조정", "갑질금지", "서면발급", "법위반", "기술탈취", "정산", "하도급법", "과징금", "거래공정", "기명날인", "계약내용", "감독", "대금지급", "자료요구", "상생협력", "재하도급", "작업지시서", "증빙서류", "부당특약", "인테그리티"];
+    const baseWords = ["하도급", "원사업자", "수급사업자", "하도급대금 연동제", "하도급 계약서", "하도급대금", "주요 원재료", "쪼개기 계약 금지", "입찰참가자격 제한", "법정 지급기일 준수", "하도급대금 지급보증", "기술자료요구서 제공", "비밀유지계약 체결", "원가", "징벌적 손해배상책임", "하도급법 준수", "작업지시서 발급", "부당특약 설정 금지", "인테그리티", "Integrity", "벚꽃놀이", "자율활동", "협력사", "하도급법", "공정위 제재"];
     const shuffledWords = baseWords.sort(() => 0.5 - Math.random()).slice(0, 25);
 
     const container = document.getElementById("game-container");
@@ -128,7 +194,7 @@
           fw.y += 1.5;
           fw.element.style.top = fw.y + "px";
           if (fw.y > container.offsetHeight - 60) {
-            endGame("실패! 단어를 놓쳤어요.", false);
+            endGame("아쉽게 실패했네요! 다시 도전하세요!", false);
           }
         }
       }, 30);
@@ -143,11 +209,27 @@
           if (typedCount === totalWords) {
             const time = ((Date.now() - startTime) / 1000).toFixed(2);
             promptForNameAndSaveScore(time);
-            endGame(`성공! 기록: ${time}초`, true);
+            endGame(`게임 완료! 기록: ${time}초`, true);
           }
           break;
         }
       }
+    }
+
+    function promptForNameAndSaveScore(score) {
+      const name = prompt("별명을 입력하세요 (10자 이내)")?.trim().slice(0, 10);
+      if (!name) return;
+      db.ref("scores").push({ name, score: parseFloat(score) });
+    }
+
+    function loadLeaderboard() {
+      db.ref("scores").orderByChild("score").limitToFirst(5).on("value", snapshot => {
+        const list = [];
+        snapshot.forEach(child => {
+          list.push(child.val());
+        });
+        rankingList.innerHTML = list.map((d, i) => `<li>${i + 1}위: ${d.name} - ${d.score}초</li>`).join("");
+      });
     }
 
     function endGame(message, isSuccess) {
@@ -167,30 +249,16 @@
       typedCount = 0;
       gameEnded = false;
       shuffledWords.forEach((w, i) => {
-        setTimeout(() => { if (!gameEnded) createWord(w); }, i * 1500);
+        setTimeout(() => {
+          if (!gameEnded) createWord(w);
+        }, i * 1500);
       });
-      setTimeout(dropWords, 1000);
+      setTimeout(() => dropWords(), 1000);
       startTime = Date.now();
       timerInterval = setInterval(() => {
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
         document.getElementById("timer").innerText = `${elapsed}초`;
       }, 100);
-    }
-
-    function promptForNameAndSaveScore(score) {
-      const name = prompt("별명을 입력하세요 (10자 이내)")?.trim().slice(0, 10);
-      if (!name) return;
-      db.ref("scores").push({ name, score: parseFloat(score) });
-    }
-
-    function loadLeaderboard() {
-      db.ref("scores").orderByChild("score").limitToFirst(5).on("value", snapshot => {
-        const list = [];
-        snapshot.forEach(child => {
-          list.push(child.val());
-        });
-        rankingList.innerHTML = list.map((d, i) => `<li>${i + 1}위: ${d.name} - ${d.score}초</li>`).join("");
-      });
     }
 
     startBtn.addEventListener("click", startGame);
