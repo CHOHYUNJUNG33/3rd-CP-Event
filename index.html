@@ -1,8 +1,11 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <title>3차 컴플라이언스 이벤트!</title>
   <link href="https://cdn.jsdelivr.net/gh/webfontworld/gmarket/GmarketSans.css" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -17,8 +20,8 @@
     }
     #game-container {
       position: relative;
-      width: 70vw;
-      height: 70vh;
+      width: 80vw;
+      aspect-ratio: 16 / 9;
       background: url("abcd.PNG") center/cover no-repeat;
       background-color: #fff;
       overflow: hidden;
@@ -70,6 +73,16 @@
       padding: 8px 14px;
       border-radius: 10px;
       color: #333;
+      z-index: 10;
+    }
+    #leaderboard {
+      position: absolute;
+      top: 20px;
+      left: 240px;
+      background: rgba(255,255,255,0.8);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.9vw;
       z-index: 10;
     }
     #start-screen {
@@ -131,6 +144,7 @@
 <body>
   <div id="game-container">
     <div id="top-left-text">3차 컴플라이언스 이벤트!</div>
+    <div id="leaderboard"><strong>실시간 순위</strong><ol id="ranking-list"></ol></div>
     <div id="word-counter">0 / 25개</div>
     <div id="start-screen"><button id="start-button">Game Start!</button></div>
     <button id="restart-btn">Restart!</button>
@@ -139,7 +153,20 @@
       <input type="text" id="word-input" placeholder="단어를 입력하세요" autofocus />
     </div>
     <div id="complete"></div>
-  </div>  <script>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDmAU5DzdxpIotxcH0b4HQFzGbp1Wat7dA",
+      authDomain: "rd-cp-event.firebaseapp.com",
+      projectId: "rd-cp-event",
+      storageBucket: "rd-cp-event.appspot.com",
+      messagingSenderId: "459007448670",
+      appId: "1:459007448670:web:d40a5aedab936b191c46cf"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const baseWords = ["하도급", "원사업자", "수급사업자", "하도급대금 연동제", "하도급 계약서", "하도급대금", "주요 원재료", "쪼개기 계약 금지", "입찰참가자격 제한", "법정 지급기일 준수", "하도급대금 지급보증", "기술자료요구서 제공", "비밀유지계약 체결", "원가", "징벌적 손해배상책임", "하도급법 준수", "작업지시서 발급", "부당특약 설정 금지", "인테그리티", "Integrity", "벚꽃놀이", "자율활동", "협력사", "하도급법", "공정위 제재"];
     const shuffledWords = baseWords.sort(() => 0.5 - Math.random()).slice(0, 25);
 
@@ -149,12 +176,19 @@
     const inputBox = document.getElementById("word-input");
     const completeBox = document.getElementById("complete");
     const wordCounter = document.getElementById("word-counter");
+    const rankingList = document.getElementById("ranking-list");
 
     let fallingWords = [];
     let timerInterval, dropInterval, startTime;
     let totalWords = 25;
     let typedCount = 0;
     let gameEnded = false;
+    let fallSpeed = 1.5;
+
+    function calculateSpeed() {
+      const screenRatio = window.innerHeight / window.innerWidth;
+      fallSpeed = screenRatio > 1.2 ? 2.8 : 1.5;
+    }
 
     function createWord(word) {
       if (gameEnded) return;
@@ -170,7 +204,7 @@
     function dropWords() {
       dropInterval = setInterval(() => {
         for (let fw of fallingWords) {
-          fw.y += 1.5;
+          fw.y += fallSpeed;
           fw.element.style.top = fw.y + "px";
           if (fw.y > document.getElementById("game-container").offsetHeight - 60) {
             endGame("아쉽게 실패했네요! 다시 도전하세요!", false);
@@ -192,11 +226,28 @@
           updateCounter();
           if (typedCount === totalWords) {
             const time = ((Date.now() - startTime) / 1000).toFixed(2);
+            saveScore(time);
             endGame(`게임 완료! 기록: ${time}초`, true);
           }
           break;
         }
       }
+    }
+
+    function saveScore(score) {
+      const name = prompt("별명을 입력하세요 (10자 이내)")?.trim().slice(0, 10);
+      if (!name) return;
+      db.ref("scores").push({ name, score: parseFloat(score) });
+    }
+
+    function loadLeaderboard() {
+      db.ref("scores").orderByChild("score").limitToFirst(5).on("value", snapshot => {
+        const list = [];
+        snapshot.forEach(child => {
+          list.push(child.val());
+        });
+        rankingList.innerHTML = list.map((d, i) => `<li>${i + 1}위: ${d.name} - ${d.score}초</li>`).join("");
+      });
     }
 
     function endGame(message, isSuccess) {
@@ -208,6 +259,7 @@
     }
 
     function startGame() {
+      calculateSpeed();
       startBtn.style.display = "none";
       restartBtn.style.display = "block";
       inputArea.style.display = "block";
@@ -237,5 +289,8 @@
         inputBox.value = "";
       }
     });
-  </script></body>
+
+    loadLeaderboard();
+  </script>
+</body>
 </html>
